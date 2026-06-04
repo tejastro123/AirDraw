@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import CameraView from './components/CameraView';
 import DrawingCanvas from './components/DrawingCanvas';
 import HelpPanel from './components/HelpPanel';
@@ -9,11 +9,58 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
 function App() {
-  const [settings, setSettings] = useState({
-    color: '#00ffff',
-    lineWidth: 8,
-    glowIntensity: 20,
+  const [settings, setSettings] = useState(() => {
+    const defaults = {
+      color: '#00ffff',
+      lineWidth: 8,
+      glowIntensity: 20,
+      brushType: 'pen',
+      mode: '2d',
+      collabRoom: '',
+      clientId: `user-${Math.floor(Math.random() * 10000)}`,
+    };
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('airdraw_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return { ...defaults, ...parsed, collabRoom: '' }; // don't auto-join last room
+        } catch (e) {
+          return defaults;
+        }
+      }
+    }
+    return defaults;
   });
+
+  const [missingLibraries, setMissingLibraries] = useState([]);
+
+  useEffect(() => {
+    const checkLibraries = () => {
+      const missing = [];
+      if (!window.Hands) missing.push('MediaPipe Hands');
+      if (!window.Tesseract) missing.push('Tesseract OCR');
+      if (!window.math) missing.push('MathJS');
+      if (!window.katex) missing.push('KaTeX');
+      if (!window.mermaid) missing.push('MermaidJS');
+      setMissingLibraries(missing);
+    };
+
+    checkLibraries();
+    const interval = setInterval(checkLibraries, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSettingsChange = (newSettings) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem('airdraw_settings', JSON.stringify({
+        ...updated,
+        collabRoom: '' // keep transient room session-only
+      }));
+      return updated;
+    });
+  };
 
   // Primary hand (drawing)
   const [gesture, setGesture] = useState(GESTURES.IDLE);
@@ -96,7 +143,7 @@ function App() {
 
       <ControlPanel
         settings={settings}
-        onSettingsChange={(newSettings) => setSettings(prev => ({ ...prev, ...newSettings }))}
+        onSettingsChange={handleSettingsChange}
         onClear={() => canvasRef.current?.clear()}
         onUndo={() => canvasRef.current?.undo()}
         onRedo={() => canvasRef.current?.redo()}
@@ -106,6 +153,7 @@ function App() {
         gestureVisible={gesturesEnabled}
         onToggleGestures={() => setGesturesEnabled(!gesturesEnabled)}
         onHelp={() => setIsHelpOpen(true)}
+        canvasRef={canvasRef}
       />
 
       <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
@@ -221,6 +269,32 @@ function App() {
       {!landmark && !controlLandmark && (
         <div className="overlay-message">
           👋 Raise your hand to start drawing
+        </div>
+      )}
+
+      {/* Offline/CDN load failures warnings */}
+      {missingLibraries.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '24px',
+          zIndex: 99,
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '12px',
+          padding: '10px 14px',
+          color: '#f87171',
+          fontSize: '11px',
+          backdropFilter: 'blur(16px)',
+          maxWidth: '280px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          fontFamily: "'Outfit', sans-serif"
+        }}>
+          <strong style={{ color: '#fff', fontSize: '12px' }}>⚠️ Offline / Loading Services...</strong>
+          <div>Some features are temporarily disabled: {missingLibraries.join(', ')}.</div>
         </div>
       )}
     </div>

@@ -5,14 +5,17 @@ export class StrokeManager {
     this._nextId = 1;
   }
 
-  addStroke(points, color, lineWidth, glowIntensity) {
+  addStroke(points, color, lineWidth, glowIntensity, brushType = 'pen', shapeType = null) {
     const newStroke = {
       id: this._nextId++,
       points: [...points],
       color,
       lineWidth,
       glowIntensity,
+      brushType,
+      shapeType,
       transform: { tx: 0, ty: 0, scale: 1, rotation: 0 },
+      timestamp: Date.now(),
     };
     this.strokes.push(newStroke);
     this.redoStack = []; // Clear redo stack on new action

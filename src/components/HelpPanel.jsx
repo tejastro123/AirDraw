@@ -20,8 +20,10 @@ const gestures = [
     ],
   },
   {
-    section: 'Tips',
+    section: 'Tips & AI Intel',
     items: [
+      { emoji: '🪄', gesture: 'Shape Autocorrect', action: 'Converts rough lines/shapes to vectors' },
+      { emoji: '🖌️', gesture: '7 Brush Types', action: 'Choose styles (e.g. Neon, Spray, Watercolor)' },
       { emoji: '💡', gesture: 'One hand only', action: 'Auto-assigned as draw hand' },
       { emoji: '📐', gesture: 'Release rotate', action: 'Snaps to nearest 45°' },
       { emoji: '🌀', gesture: 'Release move', action: 'Slight inertia drift' },

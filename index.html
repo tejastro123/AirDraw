@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Air Draw - AI Powered</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>Neon Air Draw - AI-Powered Hand Gesture Drawing Canvas</title>
+    <meta name="description" content="An interactive AI-powered drawing application using hand tracking. Draw in 2D or 3D spaces using gestures, solve math equations with OCR, and build UML diagrams.">
+    <meta name="keywords" content="AI drawing, hand tracking, gestural interface, computer vision drawing, online whiteboard, real-time collaboration, math solver, flowchart builder">
+    <meta name="author" content="AirDraw Team">
+    <meta property="og:title" content="Neon Air Draw - AI-Powered Gesture Canvas">
+    <meta property="og:description" content="Draw in 2D/3D using hand gestures. Features real-time collaboration, equation solvers, and flowchart builders.">
+    <meta property="og:type" content="website">
 
     <!-- Google Fonts for Premium Aesthetics -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- MediaPipe Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <!-- Additional Libraries for OCR, Math, Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.8.0/lib/browser/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>

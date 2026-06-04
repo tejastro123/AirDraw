@@ -1,15 +1,23 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { HandTracker } from '../modules/handTracking';
 
 const CameraView = ({ onResults }) => {
   const videoRef = useRef(null);
   const trackerRef = useRef(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     const video = videoRef.current;
+    if (!video) return;
+
+    let animationFrameId = null;
+    let isActive = true;
 
     const startCamera = async () => {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Webcam access is not supported in this browser environment.');
+        }
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: 1280 },
@@ -17,24 +25,42 @@ const CameraView = ({ onResults }) => {
             facingMode: 'user',
           },
         });
+        
+        if (!isActive) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
         video.srcObject = stream;
         video.onloadedmetadata = () => {
-          video.play();
+          video.play().catch(e => console.warn("Video play interrupted:", e));
           startTracking();
         };
       } catch (err) {
         console.error('Error accessing camera:', err);
+        setErrorMsg(`Camera Access Failed: ${err.message || 'Unknown camera issue'}`);
       }
     };
 
     const startTracking = () => {
-      trackerRef.current = new HandTracker(onResults);
+      try {
+        trackerRef.current = new HandTracker(onResults);
+      } catch (e) {
+        console.error("Hand tracker initialization error:", e);
+        setErrorMsg("Failed to initialize gesture recognition. Ensure you are connected to the internet and CDN resources have loaded.");
+        return;
+      }
       
       const processFrame = async () => {
-        if (video.readyState === 4) {
-          await trackerRef.current.send(video);
+        if (!isActive) return;
+        if (video.readyState === 4 && trackerRef.current) {
+          try {
+            await trackerRef.current.send(video);
+          } catch (err) {
+            console.error("Frame processing error:", err);
+          }
         }
-        requestAnimationFrame(processFrame);
+        animationFrameId = requestAnimationFrame(processFrame);
       };
       
       processFrame();
@@ -43,9 +69,15 @@ const CameraView = ({ onResults }) => {
     startCamera();
 
     return () => {
-      if (video.srcObject) {
+      isActive = false;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      if (video && video.srcObject && typeof video.srcObject.getTracks === 'function') {
         const tracks = video.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        if (Array.isArray(tracks)) {
+          tracks.forEach(track => track.stop());
+        }
       }
     };
   }, [onResults]);
@@ -61,17 +93,54 @@ const CameraView = ({ onResults }) => {
       zIndex: -1,
       backgroundColor: '#000',
     }}>
-      <video
-        ref={videoRef}
-        style={{
-          width: '100%',
+      {errorMsg ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           height: '100%',
-          objectFit: 'cover',
-          transform: 'scaleX(-1)', // Mirror effect
-          filter: 'brightness(1)', // Clear camera view
-        }}
-        playsInline
-      />
+          padding: '24px',
+          color: '#ef4444',
+          textAlign: 'center',
+          background: '#090d16',
+          fontFamily: "'Outfit', sans-serif"
+        }}>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: '16px',
+          }}>⚠️</div>
+          <div style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            maxWidth: '500px',
+            color: '#fff',
+            marginBottom: '12px',
+          }}>
+            {errorMsg}
+          </div>
+          <div style={{
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.4)',
+            maxWidth: '400px',
+            lineHeight: 1.6
+          }}>
+            Please grant camera permissions, check your connection status, and try reloading the app.
+          </div>
+        </div>
+      ) : (
+        <video
+          ref={videoRef}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'scaleX(-1)', // Mirror effect
+            filter: 'brightness(1)', // Clear camera view
+          }}
+          playsInline
+        />
+      )}
     </div>
   );
 };
