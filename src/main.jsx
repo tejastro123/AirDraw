@@ -5,3 +5,13 @@ import App from './App.jsx'
 createRoot(document.getElementById('root')).render(
   <App />
 )
+
+// Register service worker for PWA support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
+      .catch((err) => console.error('Service Worker registration failed:', err));
+  });
+}
+

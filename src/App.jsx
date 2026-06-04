@@ -18,6 +18,7 @@ function App() {
       mode: '2d',
       collabRoom: '',
       clientId: `user-${Math.floor(Math.random() * 10000)}`,
+      interactionMode: 'camera', // 'camera' (gesture) or 'touch' (finger/mouse)
     };
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('airdraw_settings');
@@ -54,6 +55,14 @@ function App() {
   const handleSettingsChange = (newSettings) => {
     setSettings(prev => {
       const updated = { ...prev, ...newSettings };
+      
+      // Auto-toggle camera visibility based on selected mode
+      if (newSettings.interactionMode === 'touch') {
+        setCameraVisible(false);
+      } else if (newSettings.interactionMode === 'camera') {
+        setCameraVisible(true);
+      }
+
       localStorage.setItem('airdraw_settings', JSON.stringify({
         ...updated,
         collabRoom: '' // keep transient room session-only
@@ -266,7 +275,7 @@ function App() {
         );
       })}
 
-      {!landmark && !controlLandmark && (
+      {!landmark && !controlLandmark && settings.interactionMode !== 'touch' && (
         <div className="overlay-message">
           👋 Raise your hand to start drawing
         </div>

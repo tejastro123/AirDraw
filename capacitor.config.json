@@ -1,0 +1,8 @@
+{
+  "appId": "com.airdraw.app",
+  "appName": "AirDraw X",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

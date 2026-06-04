@@ -66,3 +66,34 @@ input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.2);
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
 }
+
+/* Mobile Responsive Styling */
+@media (max-width: 640px) {
+  .control-panel-wrapper {
+    right: 12px !important;
+    top: 12px !important;
+    left: auto !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+  
+  .control-panel-body {
+    width: calc(100vw - 24px) !important;
+    max-height: 65vh !important;
+    padding: 14px !important;
+    border-radius: 16px !important;
+    gap: 12px !important;
+  }
+
+  .gesture-status {
+    bottom: 20px !important;
+    padding: 8px 16px !important;
+    font-size: 11px !important;
+  }
+
+  .overlay-message {
+    font-size: 16px !important;
+    width: 80% !important;
+    text-align: center !important;
+  }
+}
+

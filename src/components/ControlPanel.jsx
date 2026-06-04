@@ -35,7 +35,7 @@ const KatexRenderer = ({ tex }) => {
     if (containerRef.current && tex) {
       if (window.katex) {
         try {
-          window.katex.render(tex, containerRef.current, { 
+          window.katex.render(tex, containerRef.current, {
             throwOnError: false,
             displayMode: true
           });
@@ -85,16 +85,16 @@ const MermaidRenderer = ({ code }) => {
   }
 
   return (
-    <div 
-      dangerouslySetInnerHTML={{ __html: svg || '<p style="font-size:11px;color:rgba(255,255,255,0.4)">Generating layout...</p>' }} 
-      style={{ 
-        background: 'rgba(255,255,255,0.04)', 
-        padding: '10px', 
-        borderRadius: '8px', 
+    <div
+      dangerouslySetInnerHTML={{ __html: svg || '<p style="font-size:11px;color:rgba(255,255,255,0.4)">Generating layout...</p>' }}
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        padding: '10px',
+        borderRadius: '8px',
         overflowX: 'auto',
         marginTop: '12px',
         maxHeight: '200px'
-      }} 
+      }}
     />
   );
 };
@@ -187,7 +187,7 @@ const ControlPanel = ({
   };
 
   return (
-    <div style={{
+    <div className="control-panel-wrapper" style={{
       position: 'fixed',
       right: '24px',
       top: '24px',
@@ -218,7 +218,7 @@ const ControlPanel = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="glass-meta"
+            className="glass-meta control-panel-body"
             initial={{ opacity: 0, x: 20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
@@ -287,7 +287,6 @@ const ControlPanel = ({
                       style={{
                         padding: '8px',
                         borderRadius: '10px',
-                        border: 'none',
                         background: settings.mode === '2d' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255,255,255,0.03)',
                         border: settings.mode === '2d' ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.1)',
                         color: '#fff',
@@ -303,7 +302,6 @@ const ControlPanel = ({
                       style={{
                         padding: '8px',
                         borderRadius: '10px',
-                        border: 'none',
                         background: settings.mode === '3d' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255,255,255,0.03)',
                         border: settings.mode === '3d' ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.1)',
                         color: '#fff',
@@ -313,6 +311,45 @@ const ControlPanel = ({
                       }}
                     >
                       📦 3D Spatial
+                    </button>
+                  </div>
+                </div>
+
+                {/* Drawing Interaction Mode */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
+                    Drawing Interaction Mode
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      onClick={() => onSettingsChange({ interactionMode: 'camera' })}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '10px',
+                        background: settings.interactionMode === 'camera' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255,255,255,0.03)',
+                        border: settings.interactionMode === 'camera' ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🖐️ Gesture Mode
+                    </button>
+                    <button
+                      onClick={() => onSettingsChange({ interactionMode: 'touch' })}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '10px',
+                        background: settings.interactionMode === 'touch' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255,255,255,0.03)',
+                        border: settings.interactionMode === 'touch' ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      👆 Touch Mode
                     </button>
                   </div>
                 </div>

@@ -20,6 +20,7 @@ const DrawingCanvas = forwardRef(({
   // Current in-progress path
   const currentPathRef = useRef(null);
   const lastPointRef = useRef(null);
+  const isDrawingRef = useRef(false);
 
   // Track control gesture for rendering
   const controlGestureRef = useRef('CTRL_IDLE');
@@ -394,6 +395,7 @@ const DrawingCanvas = forwardRef(({
 
   // === PRIMARY HAND: Drawing gestures ===
   useEffect(() => {
+    if (settings.interactionMode === 'touch') return;
     if (!landmark || !managerRef.current || !interactionRef.current) return;
 
     const x = (1 - landmark.x) * canvasRef.current.width;
@@ -504,6 +506,7 @@ const DrawingCanvas = forwardRef(({
 
   // === SECONDARY HAND: Control gestures (move/scale/rotate) ===
   useEffect(() => {
+    if (settings.interactionMode === 'touch') return;
     if (!transformRef.current) return;
     controlGestureRef.current = controlGesture || 'CTRL_IDLE';
 
@@ -535,12 +538,109 @@ const DrawingCanvas = forwardRef(({
         transformRef.current.releaseAll();
         break;
     }
-  }, [controlGesture, controlLandmark, controlPinchDelta, controlAngleDelta]);
+  }, [controlGesture, controlLandmark, controlPinchDelta, controlAngleDelta, settings]);
+
+  // === TOUCH/POINTER DRAWING HANDLERS ===
+  const handlePointerDown = (e) => {
+    if (settings.interactionMode !== 'touch') return;
+    isDrawingRef.current = true;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const now = Date.now();
+
+    const firstPoint = {
+      x,
+      y,
+      z: 0,
+      time: now,
+      pressure: e.pressure || 0.5,
+      velocity: 0,
+    };
+
+    currentPathRef.current = {
+      points: [firstPoint],
+      color: settings.color,
+      lineWidth: settings.lineWidth,
+      glowIntensity: settings.glowIntensity,
+      brushType: settings.brushType,
+    };
+    lastPointRef.current = firstPoint;
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'draw_point',
+        point: firstPoint,
+        color: settings.color,
+        lineWidth: settings.lineWidth,
+        glowIntensity: settings.glowIntensity,
+        brushType: settings.brushType
+      }));
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (settings.interactionMode !== 'touch' || !isDrawingRef.current || !currentPathRef.current || !lastPointRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const now = Date.now();
+
+    const smoothFactor = 0.15;
+    const smoothedX = lastPointRef.current.x * smoothFactor + x * (1 - smoothFactor);
+    const smoothedY = lastPointRef.current.y * smoothFactor + y * (1 - smoothFactor);
+
+    const dt = now - lastPointRef.current.time;
+    const dx = smoothedX - lastPointRef.current.x;
+    const dy = smoothedY - lastPointRef.current.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const velocity = dt > 0 ? dist / dt : 0;
+
+    const maxVelocity = 3.5;
+    const rawPressure = e.pressure || (1.0 - Math.min(1.0, velocity / maxVelocity) * 0.75);
+    const pressure = lastPointRef.current.pressure * 0.6 + rawPressure * 0.4;
+
+    const newPoint = {
+      x: smoothedX,
+      y: smoothedY,
+      z: 0,
+      time: now,
+      pressure,
+      velocity,
+    };
+
+    currentPathRef.current.points.push(newPoint);
+    lastPointRef.current = newPoint;
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'draw_point',
+        point: newPoint,
+        color: settings.color,
+        lineWidth: settings.lineWidth,
+        glowIntensity: settings.glowIntensity,
+        brushType: settings.brushType
+      }));
+    }
+  };
+
+  const handlePointerUp = (e) => {
+    if (settings.interactionMode !== 'touch') return;
+    isDrawingRef.current = false;
+    saveCurrentPath();
+  };
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
       <canvas
         ref={canvasRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         style={{
           position: 'absolute',
           top: 0,
@@ -548,7 +648,7 @@ const DrawingCanvas = forwardRef(({
           width: '100%',
           height: '100%',
           display: settings.mode === '3d' ? 'none' : 'block',
-          pointerEvents: 'none',
+          pointerEvents: settings.interactionMode === 'touch' ? 'auto' : 'none',
         }}
       />
       <div

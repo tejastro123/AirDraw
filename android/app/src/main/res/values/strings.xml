@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AirDraw X</string>
+    <string name="title_activity_main">AirDraw X</string>
+    <string name="package_name">com.airdraw.app</string>
+    <string name="custom_url_scheme">com.airdraw.app</string>
+</resources>
